@@ -181,7 +181,7 @@ public final class MaterialQuoteEditActivity extends AppCompatActivity {
                         detail,
                         pricing));
             } catch (MaterialQuoteException exception) {
-                runOnUiThread(() -> failLoad(operation));
+                runOnUiThread(() -> failLoad(operation, exception));
             }
         });
     }
@@ -391,7 +391,11 @@ public final class MaterialQuoteEditActivity extends AppCompatActivity {
                                         Optional.of(search),
                                         LOOKUP_PAGE_SIZE),
                                 Optional.empty()).items();
-                runOnUiThread(() -> showCustomers(operation, found));
+                List<CustomerSummary> scoped =
+                        MaterialQuoteCustomerScope.forOrganization(
+                                found,
+                                available.organizationId());
+                runOnUiThread(() -> showCustomers(operation, scoped));
             } catch (CustomerException exception) {
                 runOnUiThread(() -> failLookup(operation));
             }
@@ -603,6 +607,15 @@ public final class MaterialQuoteEditActivity extends AppCompatActivity {
             binding.quoteEditError.setText(R.string.quote_invalid);
             return;
         }
+        MaterialQuoteFeatureRuntime available = runtime.orElseThrow();
+        if (pricingState.visible()
+                && (!available.organizationId().isPresent()
+                        || selectedCustomer.orElseThrow().organizationId().isEmpty()
+                        || selectedCustomer.orElseThrow().organizationId().getAsLong()
+                                != available.organizationId().getAsLong())) {
+            binding.quoteEditError.setText(R.string.quote_customer_store_required);
+            return;
+        }
         if (!pricingState.ready()) {
             binding.quoteEditError.setText(R.string.quote_price_list_required);
             return;
@@ -626,7 +639,6 @@ public final class MaterialQuoteEditActivity extends AppCompatActivity {
         long operation = generation;
         setEnabled(false);
         binding.quoteEditProgress.setVisibility(View.VISIBLE);
-        MaterialQuoteFeatureRuntime available = runtime.orElseThrow();
         available.workerExecutor().execute(() -> previewRemote(
                 operation,
                 available,
@@ -810,10 +822,17 @@ public final class MaterialQuoteEditActivity extends AppCompatActivity {
         }
     }
 
-    private void failLoad(long operation) {
+    private void failLoad(long operation, MaterialQuoteException exception) {
         if (operation == generation) {
             binding.quoteEditProgress.setVisibility(View.INVISIBLE);
-            showFailure();
+            String detail = getString(R.string.quote_failure);
+            binding.quoteEditError.setText(
+                    exception.requestId()
+                            .map(requestId -> getString(
+                                    R.string.quote_failure_with_support,
+                                    detail,
+                                    requestId))
+                            .orElse(detail));
         }
     }
 

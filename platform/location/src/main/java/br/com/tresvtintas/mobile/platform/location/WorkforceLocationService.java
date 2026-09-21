@@ -38,6 +38,7 @@ public final class WorkforceLocationService extends Service {
     private static final String CHANNEL_ID = "3v_workforce_location";
     private static final int NOTIFICATION_ID = 3107;
     private static final long RECONCILE_SECONDS = 60L;
+    private static final long POLICY_REFRESH_SECONDS = 60L;
     private static final long DEFAULT_INTERVAL_SECONDS = 120L;
     private static final long DEFAULT_BATCH_SECONDS = 300L;
     private static final int MAXIMUM_LOCAL_BATCH_POINTS = 10;
@@ -130,12 +131,15 @@ public final class WorkforceLocationService extends Service {
             stopLocationUpdates();
             sampler.reset();
             flushBuffer(true, "paused_outside_schedule");
-            publish("paused_outside_schedule", "Pausado fora do horário comercial");
+            String message = policy.orElseThrow().enabled()
+                    ? "Coleta pausada fora da jornada"
+                    : "Rastreamento desativado pelo painel";
+            publish("paused_outside_schedule", message);
             sendHeartbeat("paused_outside_schedule");
             return;
         }
         startLocationUpdates();
-        publish(ACTIVE_REPORT_STATE, "Rastreamento ativo no horário comercial");
+        publish(ACTIVE_REPORT_STATE, "Rastreamento ativo pela jornada do painel");
         sendHeartbeat(ACTIVE_REPORT_STATE);
         flushBuffer(false, ACTIVE_REPORT_STATE);
     }
@@ -166,14 +170,16 @@ public final class WorkforceLocationService extends Service {
     private void refreshPolicyIfRequired() {
         long now = System.currentTimeMillis();
         if (policy.isPresent()
-                && now - lastPolicyRefresh < TimeUnit.MINUTES.toMillis(5L)) {
+                && now - lastPolicyRefresh < TimeUnit.SECONDS.toMillis(POLICY_REFRESH_SECONDS)) {
             return;
         }
         try {
             LocationDtos.PolicyResponse response = repository.policy();
             if (response.consent() == null
                     || !"accepted".equals(response.consent().status())) {
-                LocationTrackingController.disable(this);
+                stopLocationUpdates();
+                policy = Optional.empty();
+                publish("blocked", "Consentimento de localização necessário");
                 return;
             }
             policy = Optional.of(response.policy());

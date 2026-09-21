@@ -28,6 +28,7 @@
         <item quantity="other">%1$d produtos encontrados</item>
     </plurals>
     <string name="quote_customer_empty">Nenhum cliente autorizado encontrado.</string>
+    <string name="quote_customer_store_required">Selecione um cliente vinculado à loja selecionada.</string>
     <string name="quote_product_empty">Nenhum produto ativo encontrado.</string>
     <string name="quote_new_button">Novo orçamento</string>
     <string name="quote_retry_button">Tentar novamente</string>

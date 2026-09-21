@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="location_title">Localização de trabalho</string>
-    <string name="location_subtitle">Vendedores e entregadores • somente no horário comercial</string>
+    <string name="location_subtitle">Vendedores e entregadores • jornada controlada pelo painel</string>
     <string name="location_disclosure_title">Como a localização será usada</string>
-    <string name="location_disclosure_body">Durante o horário comercial definido pela 3V, este aparelho envia localização em segundo plano para registrar rotas, paradas e tempo de permanência. Gerentes autorizados veem apenas sua loja e o administrador mestre vê a rede. Fora do horário comercial, nenhum ponto é coletado. O Android mantém uma notificação visível enquanto o serviço está preparado. %1$s %2$s</string>
+    <string name="location_disclosure_body">Quando a jornada estiver ativada no painel, este aparelho envia localização em segundo plano para registrar rotas, paradas e tempo de permanência. Gerentes autorizados veem apenas sua loja e o administrador mestre vê a rede. Quando a jornada estiver desativada, nenhum ponto é coletado. O Android mantém uma notificação visível enquanto o serviço está preparado. %1$s %2$s</string>
     <plurals name="location_raw_retention">
         <item quantity="one">O ponto bruto é mantido por %d dia.</item>
         <item quantity="other">Os pontos brutos são mantidos por %d dias.</item>
@@ -20,9 +20,9 @@
     <string name="location_revoke_action">Revogar consentimento</string>
     <string name="location_status_loading">Confirmando política, consentimento e aparelho…</string>
     <string name="location_status_active">Rastreamento ativo e protegido</string>
-    <string name="location_status_paused">Preparado; coleta pausada fora do horário comercial</string>
+    <string name="location_status_paused">Preparado; coleta pausada pelo painel</string>
     <string name="location_status_detail_active">Serviço em segundo plano ativo.</string>
-    <string name="location_status_detail_paused">Retomada automática no próximo horário comercial.</string>
+    <string name="location_status_detail_paused">Retomada quando o gerente ou administrador ativar a jornada.</string>
     <string name="location_status_detail_starting">Preparando o serviço em segundo plano…</string>
     <string name="location_status_detail_blocked">Verifique as permissões de localização e notificação.</string>
     <string name="location_status_consent">Leia o aviso e confirme o consentimento obrigatório.</string>
@@ -33,6 +33,6 @@
     <string name="location_status_unavailable">Este módulo exige conta de vendedor ou entregador vinculada a uma loja.</string>
     <string name="location_last_point_none">Nenhum ponto enviado por este aparelho.</string>
     <string name="location_last_point">Último ponto aceito: %1$s • precisão %2$d m</string>
-    <string name="location_schedule">Horário da política: %1$s–%2$s • fuso %3$s</string>
+    <string name="location_schedule">Jornada controlada pelo painel: %1$s–%2$s • fuso %3$s</string>
     <string name="location_privacy_note">O consentimento não substitui as permissões do Android. Você pode revogar ambos; o sistema registra a indisponibilidade sem afirmar que o celular foi desligado.</string>
 </resources>

@@ -95,10 +95,18 @@ android {
         }
         workforceStaging {
             initWith(staging)
-            applicationIdSuffix = ".staging"
+            applicationIdSuffix = ".workforce.staging"
             versionNameSuffix = "-workforce"
             matchingFallbacks = ["staging", "debug"]
             buildConfigField("String", "ENVIRONMENT", "\"private-workforce\"")
+            buildConfigField("boolean", "IS_WORKFORCE", "true")
+        }
+        workforceRelease {
+            initWith(release)
+            applicationIdSuffix = ".workforce"
+            versionNameSuffix = "-workforce"
+            matchingFallbacks = ["release"]
+            buildConfigField("String", "ENVIRONMENT", "\"production-workforce\"")
             buildConfigField("boolean", "IS_WORKFORCE", "true")
         }
         release {
@@ -143,6 +151,35 @@ android {
     testOptions {
         unitTests {
             includeAndroidResources = true
+        }
+    }
+}
+
+def allowProductionBackendForStaging = providers.gradleProperty(
+        "allowProductionBackendForStaging")
+        .map { value -> value.trim().equalsIgnoreCase("true") }
+        .orElse(false)
+def mobileApiPointsToProduction = { String value ->
+    try {
+        def host = new URI(value).host?.toLowerCase(Locale.ROOT)
+        host == "3vtintas.com.br" || host?.endsWith(".3vtintas.com.br")
+    } catch (Exception ignored) {
+        false
+    }
+}
+
+tasks.configureEach { task ->
+    if (task.name.toLowerCase(Locale.ROOT).contains("staging")) {
+        task.doFirst {
+            if (configuredMobileApiBaseUrl.isPresent()
+                    && mobileApiPointsToProduction(mobileApiBaseUrl.get())
+                    && !allowProductionBackendForStaging.get()) {
+                throw new GradleException(
+                        "Staging Android builds cannot target 3vtintas.com.br. "
+                                + "Use an isolated non-production API, or explicitly set "
+                                + "-PallowProductionBackendForStaging=true for an approved "
+                                + "controlled production test.")
+            }
         }
     }
 }
@@ -230,6 +267,9 @@ dependencies {
     workforceStagingImplementation(project(":data:location"))
     workforceStagingImplementation(project(":feature:location"))
     workforceStagingImplementation(project(":platform:location"))
+    workforceReleaseImplementation(project(":data:location"))
+    workforceReleaseImplementation(project(":feature:location"))
+    workforceReleaseImplementation(project(":platform:location"))
 
     implementation(libs.androidx.activity)
     implementation(libs.androidx.appcompat)
