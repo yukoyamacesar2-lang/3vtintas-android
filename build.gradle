@@ -5,15 +5,23 @@ plugins {
 }
 
 // Dependency freshness is enforced by the repository dependency-audit gate.
-// Keep dependency and plugin versions pinned in the version catalog so every
-// runner evaluates the same toolchain. Dependency freshness remains enforced
-// by the repository dependency-audit gate.
+// Android Lint's network-backed version detector is intentionally disabled so
+// cached reports cannot make the same immutable source pass or fail depending
+// on repository metadata observed by a runner.
 subprojects {
     pluginManager.withPlugin("com.android.application") {
-        android.lint.disable += "NewerVersionAvailable"
+        android.lint.disable += [
+            "NewerVersionAvailable",
+            "AndroidGradlePluginVersion",
+            "GradleDependency"
+        ]
     }
     pluginManager.withPlugin("com.android.library") {
-        android.lint.disable += "NewerVersionAvailable"
+        android.lint.disable += [
+            "NewerVersionAvailable",
+            "AndroidGradlePluginVersion",
+            "GradleDependency"
+        ]
     }
 }
 

@@ -41,7 +41,11 @@ final class EncryptedLocationBuffer {
     private static final String PAYLOAD = "ciphertext";
     private static final int FORMAT_VERSION = 1;
     private static final int GCM_TAG_BITS = 128;
-    private static final int MAXIMUM_POINTS = 500;
+    // Keep a bounded encrypted outbox, but never silently evict old points.
+    // At the configured 120-second sampling interval this retains several
+    // days of offline operation. A full queue is surfaced as a blocked state
+    // so the operator can restore connectivity instead of losing history.
+    private static final int MAXIMUM_POINTS = 2_000;
     private static final int MAXIMUM_BATCH_POINTS = 50;
     private final SharedPreferences preferences;
 
@@ -52,10 +56,10 @@ final class EncryptedLocationBuffer {
     synchronized void append(LocationDtos.Point point) throws IOException {
         State state = read();
         List<LocationDtos.Point> next = new ArrayList<>(state.points());
-        next.add(point);
-        while (next.size() > MAXIMUM_POINTS) {
-            next.remove(0);
+        if (next.size() >= MAXIMUM_POINTS) {
+            throw new IOException("Protected location buffer is full.");
         }
+        next.add(point);
         write(new State(state.pendingKey(), next));
     }
 
